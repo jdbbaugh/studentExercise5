@@ -80,5 +80,27 @@ namespace StudentExercisesAPI.Controllers
                 }
             }
         }
+
+        //POST: api/Instructors
+        [HttpPost]
+        public ActionResult Post([FromBody] Exercise newExercise)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO Exercise (ExerciseName, ExerciseLanguage)
+                                            OUTPUT INSERTED.Id 
+                                            VALUES (@exerciseName ,@exerciseLanguage)";
+                    cmd.Parameters.Add(new SqlParameter("@exerciseName", newExercise.Name));
+                    cmd.Parameters.Add(new SqlParameter("@exerciseLanguage", newExercise.Language));
+
+                    int newId = (int)cmd.ExecuteScalar();
+                    newExercise.Id = newId;
+                    return CreatedAtRoute("GetExercise", new {id = newId}, newExercise);
+                }
+            }
+        }
     }
 }
