@@ -17,7 +17,7 @@ namespace StudentExercisesAPI.Controllers
         {
             get
             {
-                string connectionSTring = "Server=localhost\\SQLExpress;Database=StudentExercisesDB;Integrated Security=true";
+                string connectionSTring = "Server=localhost\\SQLExpress;Database=StudentExercises2;Integrated Security=true";
                 return new SqlConnection(connectionSTring);
             }
         }
@@ -32,7 +32,7 @@ namespace StudentExercisesAPI.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT i.id, i.firstname, i.lastname,
-                                               i.slackhandle, i.cohortId, c.name as cohortname
+                                               i.slackhandle, i.cohortId, c.cohortname
                                           FROM Instructor i INNER JOIN Cohort c ON i.cohortid = c.id";
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -72,7 +72,7 @@ namespace StudentExercisesAPI.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT i.id, i.firstname, i.lastname,
-                                               i.slackhandle, i.cohortId, c.name as cohortname
+                                               i.slackhandle, i.cohortId, c.cohortname
                                           FROM Instructor i INNER JOIN Cohort c ON i.cohortid = c.id
                                          WHERE i.id = @id;";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
