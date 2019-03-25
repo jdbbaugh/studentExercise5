@@ -102,5 +102,45 @@ namespace StudentExercisesAPI.Controllers
                 }
             }
         }
+
+        //PUT: api?Exercises/5
+        [HttpPut("{id}")]
+        public void Put(int id, [FromBody] Exercise exercise)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"UPDATE Exercise
+                                        SET ExerciseName = @exerciseName,
+                                            ExerciseLanguage = @exerciseLanguage
+                                        WHERE id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@exerciseName", exercise.Name));
+                    cmd.Parameters.Add(new SqlParameter("@exerciseLanguage", exercise.Language));
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    cmd.ExecuteNonQuery();
+
+                }
+            }
+        }
+
+        //DELETE: api/Exercises/5
+        [HttpDelete("{id}")]
+        public void Delete(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "DELETE FROM Exercise WHERE id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
