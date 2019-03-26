@@ -8,6 +8,7 @@ namespace StudentExercisesAPI.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string SlackHandle { get; set; }
+        public string CohortName { get; set; }
         public int CohortId { get; set; }
         public Cohort Cohort { get; set; }
         public List<Exercise> Exercises { get; set; } = new List<Exercise>();

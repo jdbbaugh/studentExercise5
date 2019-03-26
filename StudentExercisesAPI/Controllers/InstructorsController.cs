@@ -45,6 +45,7 @@ namespace StudentExercisesAPI.Controllers
                             FirstName = reader.GetString(reader.GetOrdinal("firstname")),
                             LastName = reader.GetString(reader.GetOrdinal("lastname")),
                             SlackHandle = reader.GetString(reader.GetOrdinal("slackhandle")),
+                            CohortName = reader.GetString(reader.GetOrdinal("cohortname")),
                             CohortId = reader.GetInt32(reader.GetOrdinal("cohortid")),
                             Cohort = new Cohort
                             {
@@ -87,6 +88,7 @@ namespace StudentExercisesAPI.Controllers
                             FirstName = reader.GetString(reader.GetOrdinal("firstname")),
                             LastName = reader.GetString(reader.GetOrdinal("lastname")),
                             SlackHandle = reader.GetString(reader.GetOrdinal("slackhandle")),
+                            CohortName = reader.GetString(reader.GetOrdinal("cohortname")),
                             CohortId = reader.GetInt32(reader.GetOrdinal("cohortid")),
                             Cohort = new Cohort
                             {
