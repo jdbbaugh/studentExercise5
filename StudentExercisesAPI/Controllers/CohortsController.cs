@@ -30,24 +30,110 @@ namespace StudentExercisesAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT id, CohortName FROM Cohort";
+                    cmd.CommandText = "SELECT c.id, c.cohortName, i.FirstName AS[Instructor-First], i.id AS InstructorId,i.LastName AS[Instructor-Last], i.SlackHandle AS [Instructor-Slack], s.id AS StudentId, s.FirstName AS[Student-First], s.LastName AS[Student-Last], s.SlackHandle AS [Student-Slack]" +
+                                      "FROM Cohort c LEFT JOIN Instructor i ON i.CohortId = c.id LEFT JOIN Student s ON s.CohortId = c.Id";
                     SqlDataReader reader = cmd.ExecuteReader();
-
-                    List<Cohort> cohorts = new List<Cohort>();
+                    Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
+                    Dictionary<int, Instructor> instructorSort = new Dictionary<int, Instructor>();
+                    Dictionary<int, Student> studentSort = new Dictionary<int, Student>();
                     while (reader.Read())
                     {
-                        Cohort cohort = new Cohort
+                        int cohortId = reader.GetInt32(reader.GetOrdinal("id"));
+                        if (!cohorts.ContainsKey(cohortId))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("id")),
-                            Name = reader.GetString(reader.GetOrdinal("CohortName"))
-                        };
-                        cohorts.Add(cohort);
+                            Cohort newCohort = new Cohort
+                            {
+                                Id = cohortId,
+                                Name = reader.GetString(reader.GetOrdinal("CohortName"))
+                            };
+
+                        cohorts.Add(cohortId,newCohort);
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal(("StudentId"))))
+                        {
+                            int studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
+                            if (!studentSort.ContainsKey(studentId))
+                            {
+                                Student newStudent = new Student
+                                {
+                                    Id = studentId,
+                                    FirstName = reader.GetString(reader.GetOrdinal("Student-First")),
+                                    LastName = reader.GetString(reader.GetOrdinal("Student-Last")),
+                                    SlackHandle = reader.GetString(reader.GetOrdinal("Student-Slack")),
+                                    CohortName = reader.GetString(reader.GetOrdinal("CohortName")),
+                                    CohortId = reader.GetInt32(reader.GetOrdinal("id"))
+                                };
+                                studentSort.Add(studentId, newStudent);
+
+                                Cohort currentCohort = cohorts[cohortId];
+                                currentCohort.Students.Add
+                                (
+                                    new Student
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                                        FirstName = reader.GetString(reader.GetOrdinal("Student-First")),
+                                        LastName = reader.GetString(reader.GetOrdinal("Student-Last")),
+                                        SlackHandle = reader.GetString(reader.GetOrdinal("Student-Slack")),
+                                        CohortName = reader.GetString(reader.GetOrdinal("CohortName")),
+                                        CohortId = reader.GetInt32(reader.GetOrdinal("id"))
+                                    }
+                                );
+                                string stuFirstName = reader.GetString(reader.GetOrdinal("Student-First"));
+                                string stuLastName = reader.GetString(reader.GetOrdinal("Student-Last"));
+                                string stuFullName = $"{stuFirstName} {stuLastName}";
+
+                                Cohort currentCohort2 = cohorts[cohortId];
+                                currentCohort2.StudentList.Add(stuFullName);
+
+
+                            }
+                        }
+                            
+                            if (!reader.IsDBNull(reader.GetOrdinal(("InstructorId"))))
+                            {
+                                int instructorId = reader.GetInt32(reader.GetOrdinal("InstructorId"));
+                                if (!instructorSort.ContainsKey(instructorId))
+                                {
+                                    Instructor newInstructor = new Instructor
+                                    {
+                                        Id = instructorId,
+                                        FirstName = reader.GetString(reader.GetOrdinal("Instructor-First")),
+                                        LastName = reader.GetString(reader.GetOrdinal("Instructor-Last")),
+                                        SlackHandle = reader.GetString(reader.GetOrdinal("Instructor-Slack")),
+                                        CohortName = reader.GetString(reader.GetOrdinal("CohortName")),
+                                        CohortId = reader.GetInt32(reader.GetOrdinal("id"))
+                                    };
+                                    instructorSort.Add(instructorId,newInstructor);
+
+                                    Cohort currentCohort = cohorts[cohortId];
+                                    currentCohort.Instructors.Add(
+                                        new Instructor
+                                        {
+                                            Id = instructorId,
+                                            FirstName = reader.GetString(reader.GetOrdinal("Instructor-First")),
+                                            LastName = reader.GetString(reader.GetOrdinal("Instructor-Last")),
+                                            SlackHandle = reader.GetString(reader.GetOrdinal("Instructor-Slack")),
+                                            CohortName = reader.GetString(reader.GetOrdinal("CohortName")),
+                                            CohortId = reader.GetInt32(reader.GetOrdinal("id"))
+                                        }
+                                    );
+                                    string insFirstName = reader.GetString(reader.GetOrdinal("Instructor-First"));
+                                    string insLastName = reader.GetString(reader.GetOrdinal("Instructor-Last"));
+                                    string stuFullName = $"{insFirstName} {insLastName}";
+                                    currentCohort.InstructorList.Add(stuFullName);
+                            }
+                                
+                        }
                     }
                     reader.Close();
-                    return cohorts;
+                    return cohorts.Values.ToList();
                 }
             }
         }
+
+
+
 
         //GET: api/cohorts/5
         [HttpGet("{id}", Name = "GetCohort")]
