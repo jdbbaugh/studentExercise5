@@ -110,31 +110,84 @@ namespace StudentExercisesAPI.Controllers
 
         //GET apki/Exercise/5
         [HttpGet("{id}", Name = "GetExercise")]
-        public Exercise Get(int id)
+        public Exercise Get(int id, string include)
         {
-            using (SqlConnection conn = Connection)
+          Exercise exercise = null;
+            if (include != "students")
             {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using (SqlConnection conn = Connection)
                 {
-                    cmd.CommandText = @"SELECT id, ExerciseName, ExerciseLanguage 
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT id, ExerciseName, ExerciseLanguage 
                                         FROM Exercise 
                                         WHERE id = @id;";
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        SqlDataReader reader = cmd.ExecuteReader();
 
-                    Exercise exercise = null;
-                    if (reader.Read())
-                    {
-                        exercise = new Exercise
+                        if (reader.Read())
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("id")),
-                            Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
-                            Language = reader.GetString(reader.GetOrdinal("ExerciseLanguage")),
-                        };
+                            exercise = new Exercise
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                                Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
+                                Language = reader.GetString(reader.GetOrdinal("ExerciseLanguage")),
+                            };
+                        }
+
+                        reader.Close();
+                        return exercise;
                     }
-                    reader.Close();
-                    return exercise;
+                }
+            }
+            else
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT id, ExerciseName, ExerciseLanguage 
+                                        FROM Exercise 
+                                        WHERE id = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        
+                        if (reader.Read())
+                        {
+                            exercise = new Exercise
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                                Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
+                                Language = reader.GetString(reader.GetOrdinal("ExerciseLanguage")),
+                            };
+                        }
+
+                        reader.Close();
+                    }
+                }
+                using (SqlConnection conn2 = Connection)
+                {
+                    conn2.Open();
+                    using (SqlCommand cmd = conn2.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT s.FirstName, s.LastName FROM AssignedExercise a " +
+                                          "JOIN Exercise e ON a.ExerciseId = e.id " +
+                                          "JOIN Student s ON a.StudentId = s.id " +
+                                          "WHERE e.id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", exercise.Id));
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            string studentName =
+                                $"{reader.GetString(reader.GetOrdinal("FirstName"))} {reader.GetString(reader.GetOrdinal("LastName"))}";
+                            exercise.AssignedStudents.Add(studentName);
+                        }
+                        reader.Close();
+                        return exercise;
+                    }
                 }
             }
         }
