@@ -23,8 +23,12 @@ namespace StudentExercisesAPI.Controllers
 
         //GET: api/Exercises
         [HttpGet]
-        public IEnumerable<Exercise> Get()
+        public IEnumerable<Exercise> Get(string include)
         {
+            if (include != "students")
+            {
+            
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
@@ -44,11 +48,65 @@ namespace StudentExercisesAPI.Controllers
                         };
                         exercises.Add(exercise);
                     }
+
                     reader.Close();
                     return exercises;
                 }
             }
         }
+            else
+            {
+                List<Exercise> exercises = new List<Exercise>();
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT id, ExerciseName, ExerciseLanguage FROM Exercise;";
+
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            Exercise exercise = new Exercise
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
+                                Language = reader.GetString(reader.GetOrdinal("ExerciseLanguage"))
+                            };
+                            exercises.Add(exercise);
+                        }
+                        reader.Close();
+                    }
+                }
+
+                using (SqlConnection conn2 = Connection)
+                {
+                    conn2.Open();
+                    using (SqlCommand cmd = conn2.CreateCommand())
+                    {
+                        foreach (Exercise exercise in exercises)
+                        {
+                            cmd.CommandText = "SELECT e.ExerciseName, e.ExerciseLanguage, s.FirstName, s.LastName " +
+                                              "FROM AssignedExercise a " +
+                                              "JOIN Exercise e ON a.ExerciseId = e.id " +
+                                              "JOIN Student s ON a.StudentId = s.id " +
+                                              $"WHERE e.id = {exercise.Id}";
+                            SqlDataReader reader = cmd.ExecuteReader();
+
+                            while (reader.Read())
+                            {
+                                string studentName = $"{reader.GetString(reader.GetOrdinal("FirstName"))} {reader.GetString(reader.GetOrdinal("LastName"))}";
+                                exercise.AssignedStudents.Add(studentName);
+                            }
+                            reader.Close();
+                        }
+
+                        return exercises;
+                    }
+                }
+            }
+    }
 
         //GET apki/Exercise/5
         [HttpGet("{id}", Name = "GetExercise")]
