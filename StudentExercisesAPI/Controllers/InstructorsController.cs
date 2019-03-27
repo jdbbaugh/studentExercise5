@@ -24,16 +24,21 @@ namespace StudentExercisesAPI.Controllers
 
         // GET: api/Instructors
         [HttpGet]
-        public IEnumerable<Instructor> Get()
+        public IEnumerable<Instructor> Get(string firstName = "", string lastName = "",string slackHandle = "")
         {
+            string queryFirstName = (firstName == "") ? "%" : firstName;
+            string queryLastName = (lastName == "") ? "%" : lastName;
+            string querySlackHandle= (slackHandle == "") ? "%" : slackHandle ;
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT i.id, i.firstname, i.lastname,
+                    cmd.CommandText = $@"SELECT i.id, i.firstname, i.lastname,
                                                i.slackhandle, i.cohortId, c.cohortname
-                                          FROM Instructor i INNER JOIN Cohort c ON i.cohortid = c.id";
+                                          FROM Instructor i INNER JOIN Cohort c ON i.cohortid = c.id
+                                          WHERE (i.firstname LIKE '{queryFirstName}' AND i.lastname LIKE '{queryLastName}'
+                                            AND i.slackhandle LIKE '{querySlackHandle}')";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Instructor> instructors = new List<Instructor>();

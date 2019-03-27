@@ -23,15 +23,17 @@ namespace StudentExercisesAPI.Controllers
 
         //GET: api/Cohorts
         [HttpGet]
-        public IEnumerable<Cohort> Get()
+        public IEnumerable<Cohort> Get(string name = "")
         {
+            string queryName = (name == "") ? "%" : name;
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = "SELECT c.id, c.cohortName, i.FirstName AS[Instructor-First], i.id AS InstructorId,i.LastName AS[Instructor-Last], i.SlackHandle AS [Instructor-Slack], s.id AS StudentId, s.FirstName AS[Student-First], s.LastName AS[Student-Last], s.SlackHandle AS [Student-Slack]" +
-                                      "FROM Cohort c LEFT JOIN Instructor i ON i.CohortId = c.id LEFT JOIN Student s ON s.CohortId = c.Id";
+                                      $"FROM Cohort c LEFT JOIN Instructor i ON i.CohortId = c.id LEFT JOIN Student s ON s.CohortId = c.Id WHERE (c.cohortName LIKE '{queryName}')";
                     SqlDataReader reader = cmd.ExecuteReader();
                     Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
                     Dictionary<int, Instructor> instructorSort = new Dictionary<int, Instructor>();

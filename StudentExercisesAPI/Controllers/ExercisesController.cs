@@ -23,8 +23,10 @@ namespace StudentExercisesAPI.Controllers
 
         //GET: api/Exercises
         [HttpGet]
-        public IEnumerable<Exercise> Get(string include)
+        public IEnumerable<Exercise> Get(string include,string exerciseName = "" ,string exerciseLanguage= "")
         {
+            string queryName = (exerciseName == "") ? "%" : exerciseName;
+            string queryLanguage = (exerciseLanguage == "") ? "%" : exerciseLanguage;
             if (include != "students")
             {
             
@@ -34,7 +36,7 @@ namespace StudentExercisesAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT id, ExerciseName, ExerciseLanguage FROM Exercise;";
+                    cmd.CommandText = $"SELECT id, ExerciseName, ExerciseLanguage FROM Exercise WHERE (ExerciseName LIKE '{queryName}' AND ExerciseLanguage LIKE '{queryLanguage}');";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Exercise> exercises = new List<Exercise>();

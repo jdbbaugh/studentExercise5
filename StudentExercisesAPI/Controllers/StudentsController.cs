@@ -25,8 +25,12 @@ namespace StudentExercisesAPI.Controllers
 
         // GET: api/Students
         [HttpGet]
-        public IEnumerable<Student> Get(string include = "")
+        public IEnumerable<Student> Get(string firstName = "", string lastName = "", string slackHandle = "", string include = "")
         {
+            string queryFn = (firstName == "") ? "%" : firstName;
+            string queryLn = (lastName == "") ? "%" : lastName;
+            string querySh = (slackHandle == "") ? "%" : slackHandle;
+
             if (include != "exercises")
             {
                 using (SqlConnection conn = Connection)
@@ -34,9 +38,11 @@ namespace StudentExercisesAPI.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"SELECT s.id, s.firstName, s.lastName,
+                        cmd.CommandText = $@"SELECT s.id, s.firstName, s.lastName,
                                                s.slackHandle, s.cohortId, c.cohortName
-                                        FROM Student s INNER JOIN Cohort c On s.cohortId = c.id";
+                                        FROM Student s INNER JOIN Cohort c On s.cohortId = c.id
+                                        WHERE (s.firstName LIKE '{queryFn}' AND s.lastName LIKE '{queryLn}'
+                                             AND s.slackHandle LIKE '{querySh}')";
                         SqlDataReader reader = cmd.ExecuteReader();
 
                         List<Student> students = new List<Student>();
@@ -67,9 +73,11 @@ namespace StudentExercisesAPI.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"SELECT s.id, s.firstName, s.lastName,
+                        cmd.CommandText = $@"SELECT s.id, s.firstName, s.lastName,
                                                s.slackHandle, s.cohortId, c.cohortName
-                                        FROM Student s INNER JOIN Cohort c On s.cohortId = c.id";
+                                        FROM Student s INNER JOIN Cohort c On s.cohortId = c.id
+                                        WHERE (s.firstName LIKE '{queryFn}' AND s.lastName LIKE '{queryLn}'
+                                             AND s.slackHandle LIKE '{querySh}')";
                         SqlDataReader reader = cmd.ExecuteReader();
 
                         
